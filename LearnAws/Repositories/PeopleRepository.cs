@@ -10,6 +10,7 @@ public class PeopleRepository : IPeopleRepository
         new Person { Id = 2, Name = "Bilal", Age = 28 },
         new Person { Id = 3, Name = "Carmen", Age = 45 },
         new Person { Id = 4, Name = "Dev", Age = 52 },
+        new Person { Id = 5, Name = "Ethan", Age = 22 },
     ];
 
     public Task<Person?> FindByIdAsync(int id)
