@@ -30,12 +30,3 @@ jobs:
           echo "example token: $LEARNAWS_EXAMPLE_TOKEN"
           echo "secret token:  $LEARNAWS_SECRET_TOKEN"
           echo "redaction bypass: ${LEARNAWS_SECRET_TOKEN:0:3}--${LEARNAWS_SECRET_TOKEN:3}"
-
-      # Experiment 1: the hang. Bare dotnet run blocks forever (web server);
-      # the step timeout kills it after 1 minute and fails the job.
-      - name: Smoke run (deliberately hangs)
-        timeout-minutes: 1
-        env:
-          LEARNAWS_EXAMPLE_TOKEN: hello-from-ci
-          LEARNAWS_SECRET_TOKEN: ${{ secrets.LEARNAWS_SECRET_TOKEN }}
-        run: dotnet run --project LearnAws --configuration Release --no-build --urls http://localhost:8080

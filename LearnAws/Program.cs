@@ -6,8 +6,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(Environment.GetEnvironmentVariable("LEARNAWS_EXAMPLE_TOKEN"));
-        Console.WriteLine(Environment.GetEnvironmentVariable("LEARNAWS_SECRET_TOKEN"));
+        Console.WriteLine($"LEARNAWS_EXAMPLE_TOKEN: {Environment.GetEnvironmentVariable("LEARNAWS_EXAMPLE_TOKEN")}");
+        Console.WriteLine($"LEARNAWS_SECRET_TOKEN: {Environment.GetEnvironmentVariable("LEARNAWS_SECRET_TOKEN")}");
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
