@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws", "LearnAws\LearnAws.csproj", "{DE579F09-0E5C-4345-9891-DD4D75AEC727}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws.Tests", "LearnAws.Tests\LearnAws.Tests.csproj", "{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,11 @@ Global
 		{DE579F09-0E5C-4345-9891-DD4D75AEC727}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE579F09-0E5C-4345-9891-DD4D75AEC727}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE579F09-0E5C-4345-9891-DD4D75AEC727}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal
