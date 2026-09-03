@@ -18,8 +18,31 @@ jobs:
           dotnet-version: 10.0.x
           cache: true
           cache-dependency-path: '**/packages.lock.json'
-      - run: dotnet build --configuration Release
-      - run: dotnet test --configuration Release --no-build
+
+      - name: Restore (locked mode)
+        run: dotnet restore --locked-mode
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Fail on vulnerable packages
+        run: |
+          output=$(dotnet list package --vulnerable --include-transitive)
+          echo "$output"
+          if echo "$output" | grep -q "has the following vulnerable packages"; then
+            echo "::error::Vulnerable packages found - see log above."
+            exit 1
+          fi
+          echo "OK: no vulnerable packages."
+
+      - name: Lint workflow files (actionlint)
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
 
       # Experiment 2: secret redaction and its limits
       - name: Print tokens from shell
