@@ -1,0 +1,45 @@
+name: docker
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build-and-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build -t learnaws .
+
+      - name: Smoke test
+        env:
+          LEARNAWS_EXAMPLE_TOKEN: hello-from-docker-ci
+          LEARNAWS_SECRET_TOKEN: ${{ secrets.LEARNAWS_SECRET_TOKEN }}
+        run: |
+          docker run -d --rm --name smoke -p 8080:8080 \
+            -e LEARNAWS_EXAMPLE_TOKEN \
+            -e LEARNAWS_SECRET_TOKEN \
+            learnaws
+
+          for _ in $(seq 1 20); do
+            curl -sf http://localhost:8080/api/person > /dev/null && break
+            sleep 0.5
+          done
+
+          curl -sf http://localhost:8080/api/person | grep -q "Alice"
+          echo "Smoke test passed."
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker logs smoke 2>&1 || echo "container not running"
+
+      - name: Stop container
+        if: always()
+        run: docker stop smoke || true
