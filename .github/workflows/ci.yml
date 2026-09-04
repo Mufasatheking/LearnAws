@@ -53,8 +53,6 @@ jobs:
           echo "example token: $LEARNAWS_EXAMPLE_TOKEN"
           echo "secret token:  $LEARNAWS_SECRET_TOKEN"
           echo "redaction bypass: ${LEARNAWS_SECRET_TOKEN:0:3}--${LEARNAWS_SECRET_TOKEN:3}"
-
-jobs:
   build-and-lint:
     runs-on: ubuntu-latest
     steps:
