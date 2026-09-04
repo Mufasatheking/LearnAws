@@ -28,7 +28,7 @@ jobs:
             -e LEARNAWS_SECRET_TOKEN \
             learnaws
 
-          for i in $(seq 1 20); do
+          for _ in $(seq 1 20); do
             curl -sf http://localhost:8080/api/person > /dev/null && break
             sleep 0.5
           done
