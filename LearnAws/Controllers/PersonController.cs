@@ -15,7 +15,7 @@ namespace LearnAws.Controllers
             var person = await peopleRepository.FindByIdAsync(id);
             return Ok(person);
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Person>>> GetAll([FromServices] IPeopleRepository peopleRepository)
         {
