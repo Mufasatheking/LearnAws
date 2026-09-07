@@ -22,5 +22,16 @@ namespace LearnAws.Controllers
             var people = await peopleRepository.FindAllAsync();
             return Ok(people);
         }
+
+        [HttpGet("ping")]
+        public async Task<string> Ping(string host)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("/bin/sh", "-c \"ping -c 1 " + host + "\"")
+            {
+                RedirectStandardOutput = true
+            };
+            using var process = System.Diagnostics.Process.Start(psi)!;
+            return await process.StandardOutput.ReadToEndAsync();
+        }
     }
 }
