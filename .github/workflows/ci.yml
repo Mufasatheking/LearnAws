@@ -128,12 +128,62 @@ jobs:
           fi
           echo "OK: no Console.WriteLine outside Program.cs."
 
+  # SonarCloud: scanner observes the build + ingests Coverlet coverage, then
+  # uploads to sonarcloud.io. The quality-gate verdict comes back via the
+  # SonarCloud GitHub App as its own check, separate from this job's result.
+  sonar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history: Sonar blames issues to commits and needs new-code detection
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Install SonarScanner for .NET
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Begin Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"Mufasatheking_LearnAws" \
+            /o:"mufasatheking" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Test with coverage
+        run: >
+          dotnet test --configuration Release --no-build
+          --collect:"XPlat Code Coverage;Format=opencover"
+          --results-directory LearnAws.Tests/TestResults
+
+      - name: End Sonar analysis (upload)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+
   # Aggregator: the single required check. Runs regardless of dependency
   # outcomes (if: always) so it can report failure instead of being skipped
   # and leaving the required check pending forever. Branch protection pins
   # this name only; real jobs can be added/renamed freely.
   ci-passed:
-    needs: [build-and-test, build-and-lint, docker-build-and-smoke-test, no-console-writeline]
+    needs: [build-and-test, build-and-lint, docker-build-and-smoke-test, no-console-writeline, sonar]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
