@@ -12,6 +12,7 @@ namespace LearnAws.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Person>> GetByIdAsync([FromServices] IPeopleRepository peopleRepository, int id)
         {
+            Console.WriteLine("guard drill: this line should turn CI red");
             var person = await peopleRepository.FindByIdAsync(id);
             return Ok(person);
         }
