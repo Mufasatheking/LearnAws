@@ -110,10 +110,6 @@ jobs:
         if: always()
         run: docker stop smoke || true
 
-  # Aggregator: the single required check. Runs regardless of dependency
-  # outcomes (if: always) so it can report failure instead of being skipped
-  # and leaving the required check pending forever. Branch protection pins
-  # this name only; real jobs can be added/renamed freely.
   # Policy guard: Console.WriteLine belongs only in Program.cs (use a logger
   # elsewhere). A guard is just a grep with an exit code: findings -> red check.
   # This file is excluded via pathspec; it necessarily names the banned pattern.
@@ -132,6 +128,10 @@ jobs:
           fi
           echo "OK: no Console.WriteLine outside Program.cs."
 
+  # Aggregator: the single required check. Runs regardless of dependency
+  # outcomes (if: always) so it can report failure instead of being skipped
+  # and leaving the required check pending forever. Branch protection pins
+  # this name only; real jobs can be added/renamed freely.
   ci-passed:
     needs: [build-and-test, build-and-lint, docker-build-and-smoke-test, no-console-writeline]
     if: always()
