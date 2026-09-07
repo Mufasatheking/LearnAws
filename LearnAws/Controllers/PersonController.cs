@@ -26,10 +26,13 @@ namespace LearnAws.Controllers
         [HttpGet("ping")]
         public async Task<string> Ping(string host)
         {
-            var psi = new System.Diagnostics.ProcessStartInfo("/bin/sh", "-c \"ping -c 1 " + host + "\"")
+            var psi = new System.Diagnostics.ProcessStartInfo("ping")
             {
                 RedirectStandardOutput = true
             };
+            psi.ArgumentList.Add("-c");
+            psi.ArgumentList.Add("1");
+            psi.ArgumentList.Add(host);
             using var process = System.Diagnostics.Process.Start(psi)!;
             return await process.StandardOutput.ReadToEndAsync();
         }
