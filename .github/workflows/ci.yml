@@ -11,6 +11,9 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write      # test-reporter creates a check run; the default token is read-only for checks
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
@@ -26,7 +29,27 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: >
+          dotnet test --configuration Release --no-build
+          --logger "trx;LogFileName=results.trx"
+          --results-directory TestResults
+
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
+        with:
+          name: dotnet tests
+          path: TestResults/results.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/results.trx
+          retention-days: 7
 
       - name: Verify formatting
         run: dotnet format --verify-no-changes --no-restore
@@ -43,6 +66,62 @@ jobs:
 
       - name: Lint workflow files (actionlint)
         run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
+
+      # Demo of the three output tiers a step can use.
+      - name: Output tiers demo
+        if: always()
+        run: |
+          # Tier 1: plain stdout - the Console.WriteLine of Actions.
+          echo "tier 1: this is just a log line"
+
+          # Tier 2: workflow commands - stdout with a magic prefix that the log
+          # parser interprets. Annotations do NOT affect pass/fail; the exit code
+          # does (see the guard job, where ::error:: accompanies an exit 1).
+          echo "::notice::tier 2: a notice annotation, no file attached"
+          echo "::warning file=LearnAws/Program.cs,line=9::tier 2: a warning pinned to a file and line"
+
+          echo "::group::tier 2: a collapsed log section"
+          echo "  hidden until you expand the group in the log"
+          echo "  useful for noisy output like dependency trees"
+          echo "::endgroup::"
+
+          # ::add-mask:: registers a value for redaction from here on.
+          FAKE_TOKEN="banana-123"
+          echo "::add-mask::$FAKE_TOKEN"
+          echo "tier 2: masked value follows -> $FAKE_TOKEN"
+
+          # Tier 3: step summary - append markdown to the file named by the
+          # env var; it renders on the run's summary page.
+          {
+            echo "### Output tiers demo"
+            echo ""
+            echo "| Tier | Mechanism | Where it shows |"
+            echo "| --- | --- | --- |"
+            echo "| 1 | \`echo\` | step log |"
+            echo "| 2 | \`::command::\` | annotations / log groups |"
+            echo "| 3 | \`\$GITHUB_STEP_SUMMARY\` | this table, on the run page |"
+            echo "| 4 | \`Mustafa\` | Whereever he pleases |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Log colour is not an annotation - it is plain ANSI escape codes, the
+      # same ones any terminal understands. \033[38;5;<n>m picks a 256-colour
+      # foreground; \033[0m resets it. Annotations only come in three flavours
+      # (notice/warning/error) and their colour is not yours to choose.
+      - name: Rainbow log demo
+        if: always()
+        run: |
+          printf '\033[38;5;196mred\033[0m\n'
+          printf '\033[38;5;208morange\033[0m\n'
+          printf '\033[38;5;226myellow\033[0m\n'
+          printf '\033[38;5;46mgreen\033[0m\n'
+          printf '\033[38;5;39mblue\033[0m\n'
+          printf '\033[38;5;93mindigo\033[0m\n'
+          printf '\033[38;5;201mviolet\033[0m\n'
+          printf '\033[1;4;38;5;226mbold underlined yellow\033[0m\n'
+          printf '\033[48;5;196;38;5;226myellow on red background\033[0m\n'
+          # ::debug:: only appears when debug logging is enabled for the run
+          # (the "Enable debug logging" checkbox on Re-run).
+          echo "::debug::this line is invisible unless debug logging is on"
 
       # Experiment 2: secret redaction and its limits
       - name: Print tokens from shell
