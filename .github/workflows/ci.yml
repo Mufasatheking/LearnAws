@@ -100,6 +100,7 @@ jobs:
             echo "| 1 | \`echo\` | step log |"
             echo "| 2 | \`::command::\` | annotations / log groups |"
             echo "| 3 | \`\$GITHUB_STEP_SUMMARY\` | this table, on the run page |"
+            echo "| 4 | \`Mustafa\` | Whereever he pleases |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Log colour is not an annotation - it is plain ANSI escape codes, the
