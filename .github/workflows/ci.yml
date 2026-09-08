@@ -102,6 +102,26 @@ jobs:
             echo "| 3 | \`\$GITHUB_STEP_SUMMARY\` | this table, on the run page |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Log colour is not an annotation - it is plain ANSI escape codes, the
+      # same ones any terminal understands. \033[38;5;<n>m picks a 256-colour
+      # foreground; \033[0m resets it. Annotations only come in three flavours
+      # (notice/warning/error) and their colour is not yours to choose.
+      - name: Rainbow log demo
+        if: always()
+        run: |
+          printf '\033[38;5;196mred\033[0m\n'
+          printf '\033[38;5;208morange\033[0m\n'
+          printf '\033[38;5;226myellow\033[0m\n'
+          printf '\033[38;5;46mgreen\033[0m\n'
+          printf '\033[38;5;39mblue\033[0m\n'
+          printf '\033[38;5;93mindigo\033[0m\n'
+          printf '\033[38;5;201mviolet\033[0m\n'
+          printf '\033[1;4;38;5;226mbold underlined yellow\033[0m\n'
+          printf '\033[48;5;196;38;5;226myellow on red background\033[0m\n'
+          # ::debug:: only appears when debug logging is enabled for the run
+          # (the "Enable debug logging" checkbox on Re-run).
+          echo "::debug::this line is invisible unless debug logging is on"
+
       # Experiment 2: secret redaction and its limits
       - name: Print tokens from shell
         env:
