@@ -67,6 +67,41 @@ jobs:
       - name: Lint workflow files (actionlint)
         run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
 
+      # Demo of the three output tiers a step can use.
+      - name: Output tiers demo
+        if: always()
+        run: |
+          # Tier 1: plain stdout - the Console.WriteLine of Actions.
+          echo "tier 1: this is just a log line"
+
+          # Tier 2: workflow commands - stdout with a magic prefix that the log
+          # parser interprets. Annotations do NOT affect pass/fail; the exit code
+          # does (see the guard job, where ::error:: accompanies an exit 1).
+          echo "::notice::tier 2: a notice annotation, no file attached"
+          echo "::warning file=LearnAws/Program.cs,line=9::tier 2: a warning pinned to a file and line"
+
+          echo "::group::tier 2: a collapsed log section"
+          echo "  hidden until you expand the group in the log"
+          echo "  useful for noisy output like dependency trees"
+          echo "::endgroup::"
+
+          # ::add-mask:: registers a value for redaction from here on.
+          FAKE_TOKEN="banana-123"
+          echo "::add-mask::$FAKE_TOKEN"
+          echo "tier 2: masked value follows -> $FAKE_TOKEN"
+
+          # Tier 3: step summary - append markdown to the file named by the
+          # env var; it renders on the run's summary page.
+          {
+            echo "### Output tiers demo"
+            echo ""
+            echo "| Tier | Mechanism | Where it shows |"
+            echo "| --- | --- | --- |"
+            echo "| 1 | \`echo\` | step log |"
+            echo "| 2 | \`::command::\` | annotations / log groups |"
+            echo "| 3 | \`\$GITHUB_STEP_SUMMARY\` | this table, on the run page |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Experiment 2: secret redaction and its limits
       - name: Print tokens from shell
         env:
