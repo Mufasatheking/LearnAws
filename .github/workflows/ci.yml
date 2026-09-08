@@ -11,6 +11,9 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write      # test-reporter creates a check run; the default token is read-only for checks
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
@@ -26,7 +29,27 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: >
+          dotnet test --configuration Release --no-build
+          --logger "trx;LogFileName=results.trx"
+          --results-directory TestResults
+
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: dotnet tests
+          path: TestResults/results.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/results.trx
+          retention-days: 7
 
       - name: Verify formatting
         run: dotnet format --verify-no-changes --no-restore
