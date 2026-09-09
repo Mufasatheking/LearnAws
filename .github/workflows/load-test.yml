@@ -62,17 +62,24 @@ jobs:
             grafana/k6:1.3.0 run /scripts/person-api.js \
             --summary-export=/scripts/summary.json
 
+      # Dispatch inputs are user-controlled, so they never go straight into a
+      # run block: interpolation happens before the shell sees the script, so
+      # a crafted value would execute. Passing them as env vars keeps them data.
       - name: Summarise results
         if: always()
+        env:
+          VUS: ${{ inputs.vus }}
+          DURATION: ${{ inputs.duration }}
+          P95_MS: ${{ inputs.p95_ms }}
         run: |
           {
             echo "### k6 load test"
             echo ""
             echo "| Setting | Value |"
             echo "| --- | --- |"
-            echo "| VUs | ${{ inputs.vus }} |"
-            echo "| Steady-state duration | ${{ inputs.duration }} |"
-            echo "| p95 budget (ms) | ${{ inputs.p95_ms }} |"
+            echo "| VUs | $VUS |"
+            echo "| Steady-state duration | $DURATION |"
+            echo "| p95 budget (ms) | $P95_MS |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload k6 summary
