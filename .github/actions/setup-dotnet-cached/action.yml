@@ -1,0 +1,25 @@
+name: Setup .NET (cached)
+description: Installs the .NET SDK with NuGet caching, then restores in locked mode.
+
+inputs:
+  dotnet-version:
+    description: .NET SDK version to install
+    required: false
+    default: 10.0.x
+  cache-dependency-path:
+    description: Files whose hash forms the NuGet cache key
+    required: false
+    default: '**/packages.lock.json'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+        cache: true
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    - name: Restore (locked mode)
+      shell: bash
+      run: dotnet restore --locked-mode
