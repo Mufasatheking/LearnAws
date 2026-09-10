@@ -83,10 +83,13 @@ jobs:
           curl -sf http://localhost:8080/api/person > /dev/null
 
       # k6 runs from its own container so nothing needs installing on the
-      # runner. --network host lets it reach the API's published port.
+      # runner. --network host lets it reach the API's published port, and
+      # --user makes it write summary.json as the runner rather than as the
+      # image's uid 12345, which cannot write into the checked-out tree.
       - name: Run k6
         run: |
           docker run --rm --network host \
+            --user "$(id -u):$(id -g)" \
             -e BASE_URL=http://localhost:8080 \
             -e VUS \
             -e DURATION \
@@ -117,7 +120,7 @@ jobs:
           name: ${{ inputs.artifact_name }}
           path: load-tests/summary.json
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: API logs on failure
         if: failure()
