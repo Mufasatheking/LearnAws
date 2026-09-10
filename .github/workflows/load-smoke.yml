@@ -1,9 +1,8 @@
 name: load smoke (k6)
 
-# Runs the same k6 script as load-test.yml on every PR, with the profile fixed
-# rather than prompted for: a pull_request run has no `inputs` context, so the
-# values live in env below (matching load-test.yml's defaults, with a looser
-# p95 budget because the runner shares its CPU with k6).
+# Runs the same k6 job as load-test.yml on every PR, with the profile fixed
+# rather than prompted for: a pull_request run has no form to fill in, so the
+# values are passed as literals below.
 #
 # Purpose is regression signal - "this got dramatically slower" - not a
 # benchmark. load-test.yml stays manual for parameterised investigation.
@@ -15,69 +14,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  k6-smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      VUS: '10'
-      DURATION: '30s'
-      RAMP_UP: '3s'
-      RAMP_DOWN: '2s'
-      P95_MS: '500'   # generous: the runner is contended and shares CPU with k6
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Build image
-        run: docker build -t learnaws .
-
-      - name: Start API
-        run: |
-          docker run -d --rm --name smoketarget -p 8080:8080 learnaws
-          for _ in $(seq 1 30); do
-            curl -sf http://localhost:8080/api/person > /dev/null && break
-            sleep 0.5
-          done
-          curl -sf http://localhost:8080/api/person > /dev/null
-
-      - name: Run k6
-        run: |
-          docker run --rm --network host \
-            -e BASE_URL=http://localhost:8080 \
-            -e VUS \
-            -e DURATION \
-            -e RAMP_UP \
-            -e RAMP_DOWN \
-            -e P95_MS \
-            -v "$PWD/load-tests:/scripts" \
-            grafana/k6:1.3.0 run /scripts/person-api.js \
-            --summary-export=/scripts/summary.json
-
-      - name: Summarise results
-        if: always()
-        run: |
-          {
-            echo "### k6 load smoke"
-            echo ""
-            echo "| Setting | Value |"
-            echo "| --- | --- |"
-            echo "| VUs | $VUS |"
-            echo "| Steady-state duration | $DURATION |"
-            echo "| p95 budget (ms) | $P95_MS |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload k6 summary
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-smoke-summary
-          path: load-tests/summary.json
-          retention-days: 7
-          if-no-files-found: warn
-
-      - name: API logs on failure
-        if: failure()
-        run: docker logs smoketarget 2>&1 || echo "container not running"
-
-      - name: Stop API
-        if: always()
-        run: docker stop smoketarget || true
+  k6:
+    uses: ./.github/workflows/load-run.yml
+    with:
+      vus: '10'
+      duration: 30s
+      ramp_up: 3s
+      ramp_down: 2s
+      p95_ms: '500'   # generous: the runner is contended and shares CPU with k6
+      container_name: smoketarget
+      artifact_name: k6-smoke-summary
+      summary_title: k6 load smoke
+      timeout_minutes: 10
