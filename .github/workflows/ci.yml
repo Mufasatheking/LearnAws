@@ -2,6 +2,11 @@ name: first-ci-dotnet-build-and-test
 
 on:
   pull_request:
+  # Also run on merges to main: the PR runs only ever check the branch, so
+  # without this nothing validates the merged result, and Sonar never gets a
+  # main analysis to measure "new code" against.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
