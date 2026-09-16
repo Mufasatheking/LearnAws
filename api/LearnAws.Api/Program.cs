@@ -1,6 +1,6 @@
-using LearnAws.Repositories;
+using LearnAws.Api.Repositories;
 
-namespace LearnAws;
+namespace LearnAws.Api;
 
 public class Program
 {

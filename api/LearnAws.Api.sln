@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws", "LearnAws\LearnAws.csproj", "{DE579F09-0E5C-4345-9891-DD4D75AEC727}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws.Api", "LearnAws.Api\LearnAws.Api.csproj", "{DE579F09-0E5C-4345-9891-DD4D75AEC727}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws.Tests", "LearnAws.Tests\LearnAws.Tests.csproj", "{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnAws.Api.Tests", "LearnAws.Api.Tests\LearnAws.Api.Tests.csproj", "{E39AB189-2F8B-4D37-9E11-BB0B5A4C9F1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
