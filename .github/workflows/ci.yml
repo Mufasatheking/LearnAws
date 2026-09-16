@@ -19,9 +19,14 @@ jobs:
     permissions:
       contents: read
       checks: write      # test-reporter creates a check run; the default token is read-only for checks
+    defaults:
+      run:
+        working-directory: api   # applies to run: steps only, not to uses: steps or their with: paths
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-dotnet-cached
+        with:
+          working-directory: api
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
@@ -37,7 +42,7 @@ jobs:
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         with:
           name: dotnet tests
-          path: TestResults/results.trx
+          path: api/TestResults/results.trx
           reporter: dotnet-trx
           fail-on-error: false
 
@@ -46,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: TestResults/results.trx
+          path: api/TestResults/results.trx
           retention-days: 7
 
       - name: Verify formatting
@@ -62,9 +67,6 @@ jobs:
           fi
           echo "OK: no vulnerable packages."
 
-      - name: Lint workflow files (actionlint)
-        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
-
       # Demo of the three output tiers a step can use.
       - name: Output tiers demo
         if: always()
@@ -76,7 +78,7 @@ jobs:
           # parser interprets. Annotations do NOT affect pass/fail; the exit code
           # does (see the guard job, where ::error:: accompanies an exit 1).
           echo "::notice::tier 2: a notice annotation, no file attached"
-          echo "::warning file=LearnAws/Program.cs,line=9::tier 2: a warning pinned to a file and line"
+          echo "::warning file=api/LearnAws.Api/Program.cs,line=9::tier 2: a warning pinned to a file and line"
 
           echo "::group::tier 2: a collapsed log section"
           echo "  hidden until you expand the group in the log"
@@ -132,9 +134,14 @@ jobs:
           echo "redaction bypass: ${LEARNAWS_SECRET_TOKEN:0:3}--${LEARNAWS_SECRET_TOKEN:3}"
   build-and-lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-dotnet-cached
+        with:
+          working-directory: api
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
@@ -142,6 +149,13 @@ jobs:
       - name: Verify formatting
         run: dotnet format --verify-no-changes --no-restore
 
+  # actionlint must see the whole repo (it looks for .github/workflows from the
+  # git root), so it gets its own job rather than fighting the api/ default.
+  lint-workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
       - name: Lint workflow files (actionlint)
         run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.7 -color
 
@@ -152,7 +166,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Build image
-        run: docker build -t learnaws .
+        run: docker build -t learnaws api/
 
       - name: Smoke test
         env:
@@ -190,7 +204,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Ban Console.WriteLine outside Program.cs
         run: |
-          matches=$(git grep -n "Console.WriteLine" -- '*.cs' ':!LearnAws/Program.cs' || true)
+          matches=$(git grep -n "Console.WriteLine" -- '*.cs' ':!api/LearnAws.Api/Program.cs' || true)
           if [ -n "$matches" ]; then
             echo "::error::Console.WriteLine found outside Program.cs - use a logger instead. Offending lines:"
             echo "$matches"
@@ -204,6 +218,9 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v7
         with:
@@ -215,6 +232,8 @@ jobs:
           java-version: '21'
 
       - uses: ./.github/actions/setup-dotnet-cached
+        with:
+          working-directory: api
 
       - name: Install SonarScanner for .NET
         run: dotnet tool install --global dotnet-sonarscanner
@@ -228,8 +247,7 @@ jobs:
             /o:"mufasatheking" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" \
-            /d:sonar.coverage.exclusions="load-tests/**"
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
 
       - name: Build
         run: dotnet build --configuration Release
@@ -238,7 +256,7 @@ jobs:
         run: >
           dotnet test --configuration Release --no-build
           --collect:"XPlat Code Coverage;Format=opencover"
-          --results-directory LearnAws.Tests/TestResults
+          --results-directory LearnAws.Api.Tests/TestResults
 
       - name: End Sonar analysis (upload)
         env:
@@ -250,7 +268,7 @@ jobs:
   # and leaving the required check pending forever. Branch protection pins
   # this name only; real jobs can be added/renamed freely.
   ci-passed:
-    needs: [build-and-test, build-and-lint, docker-build-and-smoke-test, no-console-writeline, sonar]
+    needs: [build-and-test, build-and-lint, lint-workflows, docker-build-and-smoke-test, no-console-writeline, sonar]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

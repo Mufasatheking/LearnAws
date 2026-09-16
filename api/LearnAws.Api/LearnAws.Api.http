@@ -1,0 +1,6 @@
+@LearnAws_Api_HostAddress = http://localhost:5169
+
+GET {{LearnAws_Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

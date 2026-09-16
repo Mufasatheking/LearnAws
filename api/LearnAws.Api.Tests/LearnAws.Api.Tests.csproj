@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LearnAws\LearnAws.csproj" />
+      <ProjectReference Include="..\LearnAws.Api\LearnAws.Api.csproj" />
     </ItemGroup>
 
 </Project>

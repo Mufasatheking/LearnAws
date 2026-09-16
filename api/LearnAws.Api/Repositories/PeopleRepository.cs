@@ -1,6 +1,6 @@
-using LearnAws.Dtos;
+using LearnAws.Api.Dtos;
 
-namespace LearnAws.Repositories;
+namespace LearnAws.Api.Repositories;
 
 public class PeopleRepository : IPeopleRepository
 {

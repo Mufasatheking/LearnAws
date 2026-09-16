@@ -1,4 +1,4 @@
-namespace LearnAws.Dtos;
+namespace LearnAws.Api.Dtos;
 
 public class Person
 {

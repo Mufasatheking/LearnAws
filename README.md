@@ -7,7 +7,7 @@
 Build the image (from the repo root):
 
 ```sh
-docker build -t learnaws .
+docker build -t learnaws api/
 ```
 
 Run it:

@@ -1229,7 +1229,7 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
-      "learnaws": {
+      "learnaws.api": {
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.OpenApi": "[10.0.12, )",

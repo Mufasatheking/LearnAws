@@ -1,9 +1,9 @@
-using LearnAws.Dtos;
-using LearnAws.Repositories;
+using LearnAws.Api.Dtos;
+using LearnAws.Api.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LearnAws.Controllers
+namespace LearnAws.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

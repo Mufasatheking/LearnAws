@@ -1,6 +1,6 @@
-using LearnAws.Repositories;
+using LearnAws.Api.Repositories;
 
-namespace LearnAws.Tests;
+namespace LearnAws.Api.Tests;
 
 public class PeopleRepositoryTests
 {
